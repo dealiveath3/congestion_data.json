@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>混雑マップ</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+  />
+  <style>
+    #map {
+      height: 100vh;
+    }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"></script>
+  <script>
+    // 地図の初期表示
+    const map = L.map("map").setView([35.6895, 139.6917], 13); // 東京周辺
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // 混雑レベルに応じた色
+    const getColor = (level) => {
+      switch (level) {
+        case "高": return "red";
+        case "中": return "orange";
+        case "低": return "green";
+        default: return "gray";
+      }
+    };
+
+    // 外部JSONを読み込み
+    fetch("congestion_data.json")
+      .then((res) => res.json())
+      .then((data) => {
+        data.forEach((place) => {
+          const color = getColor(place.congestion);
+          const marker = L.circleMarker([place.lat, place.lon], {
+            radius: 10,
+            color: color,
+            fillColor: color,
+            fillOpacity: 0.8
+          }).addTo(map);
+
+          marker.bindPopup(`
+            <b>${place.name}</b><br/>
+            混雑度: ${place.congestion}<br/>
+            時間: ${place.datetime}
+          `);
+        });
+      });
+  </script>
+</body>
+</html>
